@@ -1,0 +1,236 @@
+---
+title: "Sanalytics"
+author: "NoSleepElite"
+date: "3/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Make Switzerland Fitter
+The app should cover the three aspects of fitness: Mental Health, Nutrition and Sport. A person can earn coins and thereby unlock the possibility to participate in courses. Using data, either entered by the user or tracked using gadgets, a user profile is generated which scores the fitness of the individual and provides recommendations based on this.
+
+# Data Input:
+Data can be collected by various health trackers (Garmin, FitBit, Apple Health), alternatively users can enter data manually in the app itself.
+
+
+# Trackables:
+Steps
+Heartbeat (differentiation between highly elevated -> high intensity training, elevated -> endurance training, normal and sleeping)
+Sport activities (database of known activities with categorization into type of training, each entry via app or connected source will be classified)
+
+
+```{r}
+load(data(activities))
+data_recorded <- read.csv("/files/recorded.csv")
+
+compare activity to database and classify
+```
+
+Sleep (Hours spent off of phone without interruption, sleep measurements using heartbeat)
+
+```{r}
+input: table measurements (table with bpm and date/time)
+if (heartrate lower than 50 bpm) {start sleep session}
+while (heartrate lower than 50 bpm)
+{ sum minutes passed
+if minutes larger than 480 classify enough sleep
+```
+
+
+Calorie intake (upload photo of food, usage of API, binary categorization into healthy vs. junk food, secondary classification into type of nutritional value e.g. proteins, carbohydrates, vitamines, vegetables, fruit, fiber), calorie count registration for interested users to track calorie intake
+
+```{r}
+input photo of meal, database known foods and nutritional value
+use bite.ai returns ranked list of most likely recognized foods 
+compare list of recognized to database and create table with contents of meal
+score each recognized food on content of different nutritional values using database
+score overall meal and classify binary using thresholds
+calculate calories of whole meal
+```
+
+
+## Mental Health:
+# Sleeptracking
+A person can upload or log sleeping habits. If a bad sleeping rhythm is reported/detected, additional logging areas open up; screen-time tracker, caffeine intake log and sleep-schedule advice (how to wake up in the correct phase of sleeping). These additional log-areas should allow the user to record data relevant for sleep and improve his sleeping habits. The person is then reminded to uphold habits to help improve sleep; no coffee 4-6 hours before bed time, reminder to put away phone, offer meditation specifically directed to calming down before sleeping, tool to add bed-time and alarm (app calculates when specific bed-time is recommended to wake-up in light-sleep phase). The process of sleep-tracking should be optimized by machine-learning.
+
+```{r}
+#sleep tracker
+input: table with recorded sleep times
+if average hours of sleep lower than 7 hours set enoughsleep to false
+if enoughsleep is false or user input problemsleeping is true show caffeine log, screen-time track, recommend meditation guide
+```
+
+```{r}
+#caffeine log
+input: table with time and amount of consumed coffee, integer tired, integer bedtime, integer caffeine_metabolism = 6
+if tired bigger than bedtime set reminder at (bedtime-caffeine_metabolism to stop caffeine consumption
+individualization
+if (tired-latest_consumption) unequal to caffeine_metabolims set caffeine_metabolism to (tired-latest_consumption)
+```
+
+# Recommendations
+The general behaviour of a person, both in nutrition and sports should be analyzed. If a “bad” period is detected, the person is pinged to ask if everything is ok and can be advised how to get out of slump. In our prototype this analysis is based on the percentual change of the moving average of users posting activity. A threshold is then 
+
+# Reminders
+Detection of hectic days by a set number of steps and increased average heartbeat, if this is reached, the person is reminded to slow down and take a breather, to ensure an overall increase in mental health.
+
+```{r}
+#hectic days
+input: int stepcount
+if stepcount bigger than 20'000 alert "You have reached 20'000 steps, your day seems to be rather hectic. We invite you to take a quick break and breathe in deeply."
+```
+
+Mindfulness
+Guides to different types of meditation are provided in the app.
+Positive reinforcement assists in motivating user to achieve goals and thus improves self worth perception
+Mental score: A users mental state can be quantified (if allowed to do so)
+
+
+## Nutrition:
+Using Bite AI API users can upload pictures of their food. The app can therefore track eating habits and make suggestions to have a more balanced diet (for example suggest recipes) 
+
+
+```{r}
+input: jpg photo
+use bite.ai returns ranked list with most likely recognized foods
+if classified foods cluster throw PersonEatsOnlyXYZ Exception
+catch PersonEatsOnlyXYZ Exception System.out.print("We recommend you the following recipes to ensure all nutritional needs are taken care of")
+```
+
+
+Tracking of eating habits allows visualization of types of cuisine consumed, app offers user recipes that broaden the scope of 
+By using points that have been collected, users can book for example cooking classes. 
+Keeping mental health in mind: do not track calories directly but focus on general eating habits (additionally solves problem that the AI image recognition is most not able to track the exact amount of calories / macros but instead give a general idea of what the user is eating → focus )
+
+## Sport:
+Allows users to track their progress and activity, earning them coins, to then be used in the marketplace.
+unlockable “personal” trainers
+Various inter-user activities, including specific challenges with friends, challenges regarding all users(very inclusive, not only who runs the fastest but also who runs the most creative route or connects with the most people on the way), comparing high-scores, should provide more incentive to get moving. Winning activities would be connected with earning more coins.
+pre set and personalizable workout routines with warmup and cooldown (reduce risk of injury)
+if shared, show gps tracking of route to be shared with others 
+
+
+
+
+## Technical Implementation
+In order to create the best user experience our app would have to be adapted continuously, in order to foster machine learning. To achieve this, we would implement user feedback surveys in the app, allowing the user to provide personal insights which can then be used as labeled data to validate and train our machine learning algorithm. The idea is to provide suggestions of courses or challenges to the user, by tracking whether a suggestion has been followed or not, the machine learning algorithm can learn.
+
+More specifically we imagined the following data processes:
+# Mental Health
+The app tracks the users fitness and nutrition behaviour and generates a user profile with the average activity. If the activity of a user drastically declines, the app checks in with the user and provides help in the form of support and suggestions. In order to train a machine learning algorithm, users are then asked to provide feedback on the identified behavioral change, e.g. in form of “How are you currently feeling”. This feedback survey is then used together with the data provided by the user as a training set for a machine learning algorithm. The feedbacks of other users are then used to validate the performance and further enable the algorithm to grow.
+The app tries to motivate users using different strategies; providing challenges, sending “Good morning” notifications or reminders to get active. It then tracks the change in behaviour of the user after one motivation attempt and thereby validates, which method fosters most response.
+
+# Food Recommendations:
+By uploading photos of their food, consumers can track their calorie count as well as their nutritional uptake. In order to validate the correct classification of photos, specifically in the binary category of healthy vs. junk, the user is asked to provide feedback. 
+The app suggests new recipes based on the users consumer behaviour, the idea is to broaden the nutritional value of the consumed goods and thereby promote health. By comparing photos uploaded after the provided recipes, the app can track whether the recommendation was followed or ignored. This provides an opportunity of the algorithm to adapt to the consumer.
+
+# Fitness:
+The app tracks the physical activity of the user and assigns a fitness level. Users can cross-validate and assign friends a fitness status, this is then used as a validation for the underlying scoring principle.
+
+
+## Using Data for motivation:
+The app uses different approaches to motivate users. By tracking which method motivates someone the most, the motivation process is individualized and optimized. Generally there is some kind of economic motivation/incentive, one can earn coins by participating in different activities. Some examples of methods are: competitions, motivational quotes/images, showing someone’s own progress, streak, motivational speeches / podcasts, and so on.
+
+
+## Resources:
+A user receives a recommendation of what would apply to him/her specifically, but has access to a database of alternate, healthy options. 
+
+## Marketplace:
+An in-app-marketplace should be created, coins generated through the activities can either be spent on courses, provided by partners of the app (with a licence), that would come out cheaper than buying every single course individually, or paid out yearly.
+This has the advantage that the direct payment of cash to users should be the last possible options (try keep coins within the marketplace which is more economically advantageous for Helsana) 
+
+
+## Social aspect:
+Users can share their accomplishments with others if so inclined. Users have a profile, onto which they can post meals, workouts 
+
+
+## Activity Plots of users
+Below data collected from the MyHelsana App was analyzed and plotted to show activitiy profiles. These were then used to generate guidelines for notifications.
+
+```{r}
+# install.packages("dygraphs")
+
+library(tidyverse)
+library(lubridate)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(dygraphs)
+library(xts)
+
+data_samsung <- read.csv("/files/all_columns.csv")
+
+# Delete some columns we don't need
+data_samsung2 <- transform(data_samsung, Day = substr(ActivityTime, 1, 10), Time = substr(ActivityTime, 12, 26))
+data_samsung2 <- select(data_samsung2, -ActivityTime, -Time, -LabelsJson, -ScreenshotFindingsJson, -X.No.column.name.)
+data_samsung2$Day <- ymd(data_samsung2$Day)
+
+# choose user
+user <- "512F6A289EFC189D12B7F1A763A0DE7B"
+
+# get data of chosen user
+user_data <- filter(data_samsung2, UserId == user)
+user_data <- add_column(user_data, 1)
+user_data$activities_day <- ave(seq_along(user_data$Day), user_data$Day, FUN = length)
+
+# filter unique dates in order to plot the data
+unique_date <- duplicated(user_data$Day)
+plot_data <- user_data[!unique_date,]
+
+# add missing date values
+plot_data <- complete(plot_data, Day = seq.Date(min(Day), max(Day), by="day")) 
+plot_data$activities_day[is.na(plot_data$activities_day)] <- 0
+
+
+# # plot activity level -> how many entries were there on one day
+# ggplot(plot_data, aes(x = Day, y = activities_day)) +
+#   geom_bar(stat="identity", fill = "indianred3") +
+#   theme_classic() 
+# 
+
+
+# creating a function to calculate the moving average
+movingaverage <- function(activecount, N) {
+  # activecount: 
+  # N: parameter that controls the length of the moving average window
+  MA <- rep(NA, length(activecount)) #create an empty container
+  
+  #within the loop we want to access the activity level from i to i-N+1
+  for (i in N:length(activecount)){
+    MA[i] <- sum(activecount[(i-N+1):i])/N
+  }
+  return(MA)
+}
+
+# Calculating the moving average for N days:
+N = 12
+movingaverage(plot_data$activities_day, N)
+
+
+#checking if the function equals 5.229239e-02 for priceUsa
+plot_data$momentum <- tsmomentum(movingaverage(plot_data$activities_day, N), 14)
+
+plot_data$alert <- ifelse(plot_data$momentum<= -0.8,1,0)
+
+
+# Use time series to track activity level over time
+don <- xts(x = plot_data$activities_day, order.by = plot_data$Day)
+
+p <- dygraph(don) %>%
+  dyOptions(labelsUTC = TRUE, fillGraph=TRUE, fillAlpha=0.1, drawGrid = FALSE, colors="#D8AE5A", connectSeparatedPoints = TRUE) %>%
+  dyRangeSelector() %>%
+  dyCrosshair(direction = "vertical") %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2, hideOnMouseOut = FALSE)  %>%
+  dyRoller(rollPeriod = 14) %>%
+  dyEvent(plot_data[which(plot_data$alert==1),]$Day, color = "grey",)
+p
+```
+
+
+
+
+
+
