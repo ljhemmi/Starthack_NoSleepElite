@@ -12,6 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Make Switzerland Fitter
 The app should cover the three aspects of fitness: Mental Health, Nutrition and Sport. A person can earn coins and thereby unlock the possibility to participate in courses. Using data, either entered by the user or tracked using gadgets, a user profile is generated which scores the fitness of the individual and provides recommendations based on this.
 
+#Disclaimer
+Due to missing technical development skills this R Markdown doesn't contain sufficient code.
+
 # Data Input:
 Data can be collected by various health trackers (Garmin, FitBit, Apple Health), alternatively users can enter data manually in the app itself.
 
@@ -25,30 +28,33 @@ Sport activities (database of known activities with categorization into type of 
 ```{r}
 load(data(activities))
 data_recorded <- read.csv("/files/recorded.csv")
-
-compare activity to database and classify
+comparison <- compare(activities,data_recorded,allowAll=TRUE)
 ```
 
 Sleep (Hours spent off of phone without interruption, sleep measurements using heartbeat)
 
 ```{r}
-input: table measurements (table with bpm and date/time)
-if (heartrate lower than 50 bpm) {start sleep session}
-while (heartrate lower than 50 bpm)
-{ sum minutes passed
-if minutes larger than 480 classify enough sleep
+heartrate <- data.frame(a = 1:10, b = c(70, 72, 80, 65, 50, 48, 42, 43, 70, 90) ,c = c(0800, 1600,1730,1830, 1945,2230,2330,0430,0600,0700), row.names = c("ID", "bpm", "timestamp") )
+sleep <- FALSE
+if (heartrate[,1:10,]<50) {sleep <- TRUE}
+
 ```
 
 
 Calorie intake (upload photo of food, usage of API, binary categorization into healthy vs. junk food, secondary classification into type of nutritional value e.g. proteins, carbohydrates, vitamines, vegetables, fruit, fiber), calorie count registration for interested users to track calorie intake
 
 ```{r}
-input photo of meal, database known foods and nutritional value
-use bite.ai returns ranked list of most likely recognized foods 
-compare list of recognized to database and create table with contents of meal
-score each recognized food on content of different nutritional values using database
-score overall meal and classify binary using thresholds
-calculate calories of whole meal
+
+#input photo of meal
+knownfoods <- load(knownfoods)
+#use bite ai returns ranked list of most likely recognized foods 
+recognized_food<- rankedlist()
+comparison <- compare(knownfoods,recognized_food,allowAll=TRUE)
+
+#score each recognized food on content of different nutritional values using database
+
+#score overall meal and classify binary using thresholds
+calories <- sum(cal)
 ```
 
 
@@ -58,17 +64,33 @@ A person can upload or log sleeping habits. If a bad sleeping rhythm is reported
 
 ```{r}
 #sleep tracker
-input: table with recorded sleep times
-if average hours of sleep lower than 7 hours set enoughsleep to false
-if enoughsleep is false or user input problemsleeping is true show caffeine log, screen-time track, recommend meditation guide
+recorded_sleep <- load(recorded_sleep)
+average_sleep <- average(recorded_sleep)
+enoughsleep <- TRUE
+if(average_sleep<0700){enoughsleep<-FALSE }
+#User can rate sleep and press "I am having sleeping problems" button
+#userinput==TRUE means user has trouble sleeping
+userinput <- load(userinput)
+#New gadgets are availbable to user in app
+caffeinelog<-FALSE
+screentime<-FALSE
+meditation<-FALSE
+if(enoughsleep==FALSE||userinput==TRUE){caffeinelog<-TRUE; screentime<-TRUE; meditation<-TRUE}
 ```
 
 ```{r}
 #caffeine log
-input: table with time and amount of consumed coffee, integer tired, integer bedtime, integer caffeine_metabolism = 6
-if tired bigger than bedtime set reminder at (bedtime-caffeine_metabolism to stop caffeine consumption
-individualization
-if (tired-latest_consumption) unequal to caffeine_metabolims set caffeine_metabolism to (tired-latest_consumption)
+coffee <- data.frame(a= c(0700,0800,0900,1000,1100,1200,1300,1600), b= c(1,1,1,1,1,1,1,1), row.names(c("times","cups")))
+tiredtime <- 2400
+bedtime <- 2000
+coffeeduration <- 0600
+
+#Sets reminder to stop drinking coffee at time stopcoffee
+if (tiredtime>bedtime){stopcoffee <- bedtime-coffeeduration}
+
+
+#individualization
+if ((tiredtime-coffee[])>coffeeduration){coffeeduration<-tiredtime-coffee[]} 
 ```
 
 # Recommendations
@@ -79,8 +101,9 @@ Detection of hectic days by a set number of steps and increased average heartbea
 
 ```{r}
 #hectic days
-input: int stepcount
-if stepcount bigger than 20'000 alert "You have reached 20'000 steps, your day seems to be rather hectic. We invite you to take a quick break and breathe in deeply."
+stepcount <- 40000
+
+if(stepcount>20000){print("You have reached 20'000 steps, your day seems to be rather hectic. We invite you to take a quick break and breathe in deeply.")}
 ```
 
 Mindfulness
@@ -94,10 +117,15 @@ Using Bite AI API users can upload pictures of their food. The app can therefore
 
 
 ```{r}
-input: jpg photo
-use bite.ai returns ranked list with most likely recognized foods
-if classified foods cluster throw PersonEatsOnlyXYZ Exception
-catch PersonEatsOnlyXYZ Exception System.out.print("We recommend you the following recipes to ensure all nutritional needs are taken care of")
+
+#input photo of meal
+knownfoods <- load(knownfoods)
+#use bite ai returns ranked list of most likely recognized foods 
+recognized_food<- rankedlist()
+
+#Boolean clustered is true if ranked_foods cluster in the same category
+clustered <- cluster::recognized_foods
+if(cluster==TRUE){print("We recommend you the following recipes to ensure all nutritional needs are taken care of")}
 ```
 
 
